@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestão de Produtos com Fotos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --cor-fundo: #f4f4f9;
+      --cor-container: #ffffff;
+      --cor-texto: #333333;
+      --cor-borda: #d1d1d1;
+      --cor-grupo-fundo: #f9f9f9;
+      --cor-sombra: rgba(0, 0, 0, 0.1);
+      --cor-botao-primario: #007bff;
+      --cor-botao-primario-hover: #0056b3;
+      --cor-botao-secundario: #6c757d;
+      --cor-botao-secundario-hover: #5a6268;
+      --cor-botao-perigo: #dc3545;
+      --cor-botao-perigo-hover: #c82333;
+      --cor-botao-sucesso: #28a745;
+      --cor-botao-sucesso-hover: #218838;
+    }
+    body.dark-mode {
+      --cor-fundo: #121212;
+      --cor-container: #1e1e1e;
+      --cor-texto: #e0e0e0;
+      --cor-borda: #444444;
+      --cor-grupo-fundo: #2a2a2a;
+      --cor-sombra: rgba(255, 255, 255, 0.1);
+      --cor-botao-primario: #0d6efd;
+      --cor-botao-primario-hover: #0b5ed7;
+      --cor-botao-secundario: #495057;
+      --cor-botao-secundario-hover: #343a40;
+      --cor-botao-perigo: #e84a5f;
+      --cor-botao-perigo-hover: #d7384c;
+      --cor-botao-sucesso: #32a852;
+      --cor-botao-sucesso-hover: #2ca048;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--cor-fundo);
+      color: var(--cor-texto);
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background-color: var(--cor-container);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px var(--cor-sombra);
+    }
+    h1 { text-align: center; margin-top: 0; margin-bottom: 25px; font-size: 2em; }
+    .titulo { text-align: center; font-size: 1.4em; margin: 20px 0 10px; font-weight: 600; }
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--cor-borda);
+      background-color: var(--cor-fundo);
+      color: var(--cor-texto);
+    }
+    input[type="file"] { padding: 5px; }
+    .button {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 8px 0;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s, transform 0.1s;
+      color: white;
+      display: inline-block;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { background-color: var(--cor-botao-primario); }
+    .button-primary:hover { background-color: var(--cor-botao-primario-hover); }
+    .button-secondary { background-color: var(--cor-botao-secundario); }
+    .button-secondary:hover { background-color: var(--cor-botao-secundario-hover); }
+    .grupo {
+      margin-top: 15px;
+      background-color: var(--cor-grupo-fundo);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid var(--cor-borda);
+    }
+    .produto {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+    .produto:last-child { border-bottom: none; }
+    .produto-info { flex-grow: 1; }
+    .produto-foto {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: var(--cor-borda);
+      cursor: pointer;
+    }
+    .produto-botoes {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .produto-botoes button {
+      padding: 5px 8px;
+      font-size: 12px;
+      width: 70px;
+      border-radius: 5px;
+    }
+    .btn-editar { background-color: var(--cor-botao-sucesso); }
+    .btn-remover { background-color: var(--cor-botao-perigo); }
+
+    hr { border: none; border-top: 1px solid var(--cor-borda); margin: 30px 0; }
+    .theme-switcher { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 15px; gap: 10px; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { display: none; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--cor-botao-primario); }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-content {
+      background: var(--cor-container);
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+    }
+    
+    .modal-fechar {
+      position: absolute;
+      top: 15px;
+      right: 35px;
+      color: #fff;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-imagem {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 8px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="theme-switcher">
+      <span>Modo Escuro</span>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <h1>Gestão de Produtos</h1>
+    <input type="text" id="nome" placeholder="Nome do Produto" />
+    <input type="text" id="local" placeholder="Local de Armazenamento" />
+    <label for="foto">Foto do Produto (opcional):</label>
+    <input type="file" id="foto" accept="image/*" />
+    <button onclick="adicionarProduto()" class="button button-primary">Adicionar Produto</button>
+
+    <div class="titulo">Produtos por Local</div>
+    <div id="listaAgrupada"></div>
+    <hr>
+
+    <div class="titulo" style="font-size: 1.2em;">Backup e Restauração</div>
+    <button onclick="salvarBackupEmArquivo()" class="button button-secondary">Salvar Backup em Arquivo</button>
+    <label for="carregarArquivo" class="button button-secondary" style="margin-top: 8px;">Carregar Backup de Arquivo</label>
+    <input type="file" id="carregarArquivo" accept=".json" style="display: none;" onchange="carregarBackupDeArquivo(event)"/>
+  </div>
+
+  <div class="modal-overlay" id="modalEdicao" onclick="if(event.target === this) fecharModalEdicao()">
+    <div class="modal-content">
+      <h2>Editar Produto</h2>
+      <input type="hidden" id="indiceProduto" />
+      <input type="text" id="nomeProdutoEditar" placeholder="Novo nome do produto" />
+      <input type="text" id="localProdutoEditar" placeholder="Novo local do produto" />
+      <label for="fotoProdutoEditar">Trocar Foto (opcional):</label>
+      <input type="file" id="fotoProdutoEditar" accept="image/*" />
+      <button onclick="salvarEdicao()" class="button button-primary">Salvar Alterações</button>
+      <button onclick="fecharModalEdicao()" class="button button-secondary">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalFoto" onclick="fecharModalFoto()">
+    <span class="modal-fechar" onclick="fecharModalFoto()">&times;</span>
+    <img class="modal-imagem" id="imagemAmpliada" alt="Imagem ampliada do produto">
+  </div>
+
+
+  <script>
+    // --- ÚNICA MUDANÇA ESTÁ AQUI ---
+
+    function salvarProdutos() {
+      try {
+        // Tenta salvar os dados no localStorage
+        localStorage.setItem('meus_produtos', JSON.stringify(produtos));
+      } catch (e) {
+        // Verifica se o erro é de cota de armazenamento excedida
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          alert(
+            'ERRO: ARMAZENAMENTO CHEIO!\n\n' +
+            'Não foi possível salvar a última alteração porque o espaço de armazenamento do navegador está lotado.\n\n' +
+            'Sugestões:\n' +
+            '1. Remova produtos com fotos muito grandes.\n' +
+            '2. Salve um backup em arquivo para liberar espaço.'
+          );
+        } else {
+          // Para qualquer outro erro inesperado
+          alert('Ocorreu um erro inesperado ao tentar salvar os dados.');
+        }
+        console.error(e); // Mostra o erro técnico no console para depuração
+      }
+    }
+
+    // --- O RESTANTE DO SCRIPT CONTINUA EXATAMENTE O MESMO ---
+
+    let produtos = [];
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+
+    function aplicarTema() {
+      const temaSalvo = localStorage.getItem('tema');
+      if (temaSalvo === 'dark') {
+        body.classList.add('dark-mode');
+        themeToggle.checked = true;
+      } else {
+        body.classList.remove('dark-mode');
+        themeToggle.checked = false;
+      }
+    }
+    themeToggle.addEventListener('change', () => {
+      body.classList.toggle('dark-mode');
+      localStorage.setItem('tema', body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+
+    function carregarProdutos() {
+      const dadosSalvos = localStorage.getItem('meus_produtos');
+      if (dadosSalvos) {
+        produtos = JSON.parse(dadosSalvos);
+      }
+    }
+    async function adicionarProduto() {
+      const nome = document.getElementById("nome").value.trim();
+      const local = document.getElementById("local").value.trim();
+      const inputFoto = document.getElementById("foto");
+      if (!nome || !local) {
+        alert("Preencha nome e local");
+        return;
+      }
+      let fotoBase64 = null;
+      if (inputFoto.files[0]) {
+        fotoBase64 = await toBase64(inputFoto.files[0]);
+      }
+      produtos.push({ nome, local, foto: fotoBase64 });
+      document.getElementById("nome").value = "";
+      document.getElementById("local").value = "";
+      inputFoto.value = "";
+      salvarEAtualizar();
+    }
+    function removerProduto(indice) {
+      const produto = produtos[indice];
+      if (confirm(`Tem certeza que deseja remover o produto "${produto.nome}"?`)) {
+        produtos.splice(indice, 1);
+        salvarEAtualizar();
+      }
+    }
+    function salvarEAtualizar() {
+        salvarProdutos();
+        atualizarTela();
+    }
+    function atualizarTela() {
+      const agrupado = {};
+      produtos.forEach((p, indice) => {
+        if (!agrupado[p.local]) agrupado[p.local] = [];
+        agrupado[p.local].push({ ...p, indiceOriginal: indice });
+      });
+      renderizarAgrupados(agrupado);
+    }
+    function renderizarAgrupados(agrupado) {
+      const lista = document.getElementById("listaAgrupada");
+      lista.innerHTML = "";
+      const placeholderFoto = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iI2U5ZWFlZSIvPgo8cGF0aCBkPSJNMjEgMzguNUwzMCAzMEw0NSA0NUg1QzUgNDUgMTUgNDUgMjEgMzguNVoiIGZpbGw9IiNjYmM5ZDAiLz4KPHBhdGggZD0iTTM2IDI0QzM2IDI2LjIwOTEgMzQuMjA5MSAyOCAzMiAyOEMyOS43OTE5IDI4IDI4IDI2LjIwOTEgMjggMjRDMTggMjEuNzkwOSAyOS43OTA5IDIwIDMyIDIwQzM0LjIwOTEgMjAgMzYgMjEuNzkwOSAzNiAyNFoiIGZpbGw9IiNjYmM5ZDAiLz4KPC9zdmc+Cg==";
+
+      for (const local in agrupado) {
+        const div = document.createElement("div");
+        div.className = "grupo";
+        const produtosHTML = agrupado[local]
+          .map((p) => `
+            <div class="produto">
+              <img src="${p.foto || placeholderFoto}" alt="Foto de ${p.nome}" class="produto-foto" onclick="abrirModalFoto(${p.indiceOriginal})">
+              <div class="produto-info">
+                <strong>${p.nome}</strong>
+              </div>
+              <div class="produto-botoes">
+                <button class="btn-editar" onclick="abrirModalEdicao(${p.indiceOriginal})">Editar</button>
+                <button class="btn-remover" onclick="removerProduto(${p.indiceOriginal})">Remover</button>
+              </div>
+            </div>
+          `).join("");
+        div.innerHTML = `<strong>${local} (${agrupado[local].length})</strong>${produtosHTML}`;
+        lista.appendChild(div);
+      }
+    }
+
+    const modalEdicao = document.getElementById('modalEdicao');
+    function abrirModalEdicao(indice) {
+      const produto = produtos[indice];
+      document.getElementById('indiceProduto').value = indice;
+      document.getElementById('nomeProdutoEditar').value = produto.nome;
+      document.getElementById('localProdutoEditar').value = produto.local;
+      document.getElementById('fotoProdutoEditar').value = "";
+      modalEdicao.style.display = 'flex';
+    }
+    function fecharModalEdicao() {
+      modalEdicao.style.display = 'none';
+    }
+    async function salvarEdicao() {
+      const indice = document.getElementById('indiceProduto').value;
+      const novoNome = document.getElementById('nomeProdutoEditar').value.trim();
+      const novoLocal = document.getElementById('localProdutoEditar').value.trim();
+      const inputFotoEditar = document.getElementById('fotoProdutoEditar');
+      if (!novoNome || !novoLocal) {
+        alert("Nome e local não podem ficar vazios.");
+        return;
+      }
+      const produtoAtual = produtos[indice];
+      let novaFotoBase64 = produtoAtual.foto;
+      if (inputFotoEditar.files[0]) {
+        novaFotoBase64 = await toBase64(inputFotoEditar.files[0]);
+      }
+      produtos[indice] = { nome: novoNome, local: novoLocal, foto: novaFotoBase64 };
+      salvarEAtualizar();
+      fecharModalEdicao();
+    }
+
+    const modalFoto = document.getElementById('modalFoto');
+    const imagemAmpliada = document.getElementById('imagemAmpliada');
+    
+    function abrirModalFoto(indice) {
+      const foto = produtos[indice].foto;
+      if (!foto) return;
+
+      imagemAmpliada.src = foto;
+      modalFoto.style.display = 'flex';
+    }
+    function fecharModalFoto() {
+      modalFoto.style.display = 'none';
+    }
+
+    function salvarBackupEmArquivo() {
+      if (produtos.length === 0) {
+        alert("Não há produtos para salvar no backup.");
+        return;
+      }
+      const dadosJson = JSON.stringify(produtos, null, 2);
+      const blob = new Blob([dadosJson], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `backup_produtos_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    function carregarBackupDeArquivo(event) {
+      const arquivo = event.target.files[0];
+      if (!arquivo) return;
+      if (!confirm("Atenção! Carregar um backup substituirá todos os dados atuais. Deseja continuar?")) {
+        event.target.value = '';
+        return;
+      }
+      const leitor = new FileReader();
+      leitor.onload = function(e) {
+        try {
+          const dadosCarregados = JSON.parse(e.target.result);
+          if (Array.isArray(dadosCarregados)) {
+            produtos = dadosCarregados;
+            salvarEAtualizar();
+            alert("Backup carregado com sucesso!");
+          } else { alert("Erro: O arquivo de backup não está no formato esperado."); }
+        } catch (error) { alert("Erro ao ler o arquivo. Verifique se é um arquivo JSON válido."); }
+        finally { event.target.value = ''; }
+      };
+      leitor.readAsText(arquivo);
+    }
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    window.onload = function() {
+      aplicarTema();
+      carregarProdutos();
+      atualizarTela();
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          fecharModalEdicao();
+          fecharModalFoto();
+        }
+      });
+    };
+  </script>
+</body>
+</html>
